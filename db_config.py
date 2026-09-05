@@ -1,8 +1,12 @@
-# kb_app 账号的连接配置（别用 root！）
+import os
+from dotenv import load_dotenv
+
+load_dotenv()   # 自动读 .env 文件
+
 DB_CONFIG = {
     "host": "localhost",
     "user": "kb_app",
-    "password": "!Zhangxingyu0104",   # ← 填 W1 记录表里的密码
+    "password": os.environ.get("KB_DB_PASSWORD", ""),
     "database": "kb_assistant",
     "charset": "utf8mb4",
 }
