@@ -17,8 +17,9 @@ def split_text(text, chunk_size=300, overlap=50):
 
 
 if __name__ == "__main__":
-    real_text = """根据公司员工手册第三章规定，员工请假需遵守以下流程：第一，提前三天在OA系统提交请假申请；第二，注明请假类型（事假、病假、年假）；第三，部门主管在24小时内审批；第四，审批通过后方可休假。如遇紧急情况无法提前申请，需当天电话告知直属主管，并在返岗后一个工作日内补交申请。"""
-    chunks = split_text(real_text, chunk_size=100, overlap=20)
-    for i, c in enumerate(chunks):
-        print(f"--- 块{i+1} ({len(c)}字) ---")
-        print(c)
+    with open("data/employee_handbook.txt", encoding="utf-8") as f:
+        text = f.read()
+    print(f"手册长度: {len(text)} 字")
+    for size, ov in [(200, 0), (200, 50), (500, 100)]:
+        result = split_text(text, chunk_size=size, overlap=ov)
+        print(f"chunk_size={size}, overlap={ov} → 切出 {len(result)} 块")
