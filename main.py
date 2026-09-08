@@ -8,6 +8,7 @@ load_dotenv()   # 读 .env（如果 db_config.py 里已经 load 过，这里可�
 from sentence_transformers import SentenceTransformer
 import chromadb
 from openai import OpenAI
+from agent.kb_agent import ask_agent
 app = FastAPI()
 # RAG 组件：全局加载一次（模型加载很慢，不能放接口函数里每次加载）
 print("加载 RAG 模型...（首次约 5~10 秒）")
@@ -129,3 +130,13 @@ def ask(req: AskRequest):
             for d, m in zip(docs, metas)
         ],
     }
+
+# main.py 加接口
+class ChatRequest(BaseModel):
+    question: str
+
+@app.post("/chat")
+def chat(req: ChatRequest):
+    """Agent 问答接口：自动决定用检索/SQL/计算器"""
+    result = ask_agent(req.question)
+    return result   # {"answer": ..., "tool_calls": [...]}
