@@ -137,7 +137,7 @@ def ask_agent(question: str, client=None) -> dict:
     messages = [{"role": "user", "content": question}]
     tool_calls_log = []  # 记录调用了哪些工具（调试/展示用）
 
-    for round_num in range(6):
+    for round_num in range(10):
         resp = client.chat.completions.create(
             model="deepseek-chat",
             messages=messages,
