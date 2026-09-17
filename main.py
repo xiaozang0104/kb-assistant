@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import services
+import repository
 from agent.kb_agent import ask_agent  # Agent 逻辑
 
 app = FastAPI()
