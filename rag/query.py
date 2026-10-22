@@ -5,9 +5,45 @@ import chromadb
 from openai import OpenAI
 import os
 
+# ---- 模块级加载（只加载一次，ask_rag 和 main 共用）----
+print("加载 RAG 模型...")
+rag_model = SentenceTransformer("BAAI/bge-small-zh-v1.5")
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
+kb = chroma_client.get_or_create_collection(name="kb_docs")
+
 # DeepSeek API key 从环境变量读（.env 方案，W2 学过）
 from dotenv import load_dotenv
 load_dotenv()
+
+def ask_rag(question: str) -> dict:
+    """RAG 问答：检索知识库 + DeepSeek 生成带依据的回答"""
+    import os
+    from openai import OpenAI
+
+    # 检索
+    q_emb = rag_model.encode([question]).tolist()   # rag_model 需在文件顶部已加载
+    results = kb.query(query_embeddings=q_emb, n_results=3)   # kb 同理
+    docs = results["documents"][0]
+    metas = results["metadatas"][0]
+
+    context = "\n\n".join(docs)
+    prompt = f"""你是企业知识库助手。只根据资料回答，资料没有就说"资料中未找到相关信息"，不要编造。
+
+资料：
+{context}
+
+问题：{question}"""
+
+    llm = OpenAI(api_key=os.environ.get("DEEPSEEK_API_KEY", ""), base_url="https://api.deepseek.com")
+    resp = llm.chat.completions.create(
+        model="deepseek-chat",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
+    )
+    return {
+        "answer": resp.choices[0].message.content,
+        "sources": [{"document_id": m["document_id"], "title": m["title"], "snippet": d[:100]} for d, m in zip(docs, metas)],
+    }
 
 def main():
     # 1. 取问题（命令行参数）

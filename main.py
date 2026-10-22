@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import services
 import repository
+from rag.query import ask_rag
 from agent.kb_agent import ask_agent  # Agent 逻辑
 
 app = FastAPI()
@@ -13,6 +14,8 @@ class DocumentCreate(BaseModel):
 class ChatRequest(BaseModel):
     question: str
 
+class AskRequest(BaseModel):
+    question: str
 # ---- 路由：只负责接收请求、调 service、返回结果 ----
 @app.get("/users")
 def list_users():
@@ -45,3 +48,7 @@ def delete_document(doc_id: int):
 @app.post("/chat")
 def chat(req: ChatRequest):
     return ask_agent(req.question)
+
+@app.post("/ask")
+def ask(req: AskRequest):
+    return ask_rag(req.question)
